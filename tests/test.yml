@@ -1,5 +1,17 @@
 ---
 - hosts: localhost
   remote_user: root
+  become: yes
+  pre-tasks:
+  - name: Download splunkforwader rpm
+    get_url:
+      url: "https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-x86_64.rpm&wget=true"
+      dest: /home/travis/ansible-splunk-forwarder/files/splunkforwarder-6.6.1-x86_64.rpm
+      
+  - name: Download splunkforwader deb
+    get_url:
+      url: "https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-amd64.deb&wget=true"
+      dest: /home/travis/ansible-splunk-forwarder/files/splunkforwarder-6.6.1-x86_64.deb
+
   roles:
   - ansible-splunk-forwarder
