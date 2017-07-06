@@ -8,6 +8,7 @@
   args:
     executable: /bin/bash
   register: splunk_installed
+  failed_when: false
   changed_when: false
 
 - name: Configure splunk group
