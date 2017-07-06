@@ -34,6 +34,9 @@ install:
   # Add roles path
   - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
 
+  # Get latest versions of openssl/wget
+  - (apt-get update && apt-get -y install openssl wget ) || yum -y install openssl openssl-libs wget
+
 script:
   # Basic role syntax check
   - ansible-playbook --connection=local tests/test.yml -i tests/inventory --syntax-check
