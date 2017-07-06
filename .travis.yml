@@ -36,14 +36,14 @@ install:
 
 script:
   # Basic role syntax check
-  - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+  - ansible-playbook --connection=local tests/test.yml -i tests/inventory --syntax-check
 
   # Test role.
-  - ansible-playbook -D tests/test.yml -i tests/inventory
+  - ansible-playbook --connection=local -D tests/test.yml -i tests/inventory
 
   # Test role idempotence.
   - idempotence=$(mktemp)
-  - ansible-playbook -D tests/test.yml -i tests/inventory | tee -a ${idempotence}
+  - ansible-playbook --connection=local -D tests/test.yml -i tests/inventory | tee -a ${idempotence}
   - >
     tail ${idempotence}
     | grep -q 'changed=0.*failed=0'
