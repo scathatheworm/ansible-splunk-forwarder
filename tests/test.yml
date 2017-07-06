@@ -2,4 +2,4 @@
 - hosts: localhost
   remote_user: root
   roles:
-    - scathatheworm.splunk-forwarder
+  - ansible-splunk-forwarder

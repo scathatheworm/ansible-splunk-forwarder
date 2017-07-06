@@ -31,9 +31,28 @@ install:
   # Check ansible version
   - ansible --version
 
+  # Add roles path
+  - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
+
+  # Download a couple splunk binaries for testing
+  - "wget -O ansible-splunk-forwarder/files/plunkforwarder-6.6.1-x86_64.rpm 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-x86_64.rpm&wget=true'"
+  - "wget -O ansible-splunk-forwarder/files/plunkforwarder-6.6.1-x86_64.deb 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.2&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-amd64.deb&wget=true'"
+
 script:
   # Basic role syntax check
   - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+
+  # Test role.
+  - ansible-playbook -D tests/test.yml -i tests/inventory
+
+  # Test role idempotence.
+  - idempotence=$(mktemp)
+  - ansible-playbook -D tests/test.yml -i tests/inventory | tee -a ${idempotence}
+  - >
+    tail ${idempotence}
+    | grep -q 'changed=0.*failed=0'
+    && (echo 'Idempotence test: pass' && exit 0)
+    || (echo 'Idempotence test: fail' && exit 1)
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/
