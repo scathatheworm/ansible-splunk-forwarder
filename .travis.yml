@@ -2,9 +2,9 @@
 language: python
 python: 2.7
 
-sudo: required
-dist: xenial
-env: OS=xenial
+sudo: false
+#dist: xenial
+#env: OS=xenial
 
 matrix:
   include:
