@@ -1,0 +1,2 @@
+get_splunk_version: 'rpm -q splunkforwarder --qf %{VERSION}'
+splunkforwarder_package: splunkforwarder.rpm

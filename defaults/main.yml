@@ -1,0 +1,7 @@
+---
+# defaults file for ansible-splunk-forwarder
+splunk_deploymentServer: 10.0.0.1
+splunk_deploymentServer_port: 8089
+splunk_nix_group: splunk
+splunk_nix_user: splunk
+splunkforwarder_version: [6,6,1]

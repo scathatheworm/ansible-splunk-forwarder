@@ -1,0 +1,93 @@
+---
+# tasks file for ansible-splunk-forwarder
+- name: Add Operating System specific variables
+  include_vars: "{{ ansible_system }}_{{ ansible_pkg_mgr }}.yml"
+
+- name: Check if splunk is already installed
+  script: "{{ ansible_system }}_{{ ansible_pkg_mgr }}.sh"
+  args:
+    executable: /bin/bash
+  register: splunk_installed
+  changed_when: false
+
+- name: Configure splunk group
+  group:
+    name: "{{ splunk_nix_group }}"
+    state: present
+  notify: restart splunk
+
+- name: Configure splunk user
+  user:
+    name: "{{ splunk_nix_user }}"
+    state: present
+    createhome: no
+    expires: no
+    group: "{{ splunk_nix_group }}"
+    home: /opt/splunkforwarder
+  notify: restart splunk 
+
+- name: Configure splunk forwarder directory
+  file:
+    path: /opt/splunkforwarder
+    owner: "{{ splunk_nix_user }}"
+    group: "{{ splunk_nix_group }}"
+    state: directory
+    recurse: yes
+  notify: restart splunk
+
+- name: Copy splunkforwarder package to host
+  copy:
+    src: "splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+    dest: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+  when:
+  - splunk_installed.rc|int == 1 or splunk_installed.rc|int == 100 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
+
+- name: Install splunk forwarder - rpm based Operating Systems
+  command: "rpm -Uvh /var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+  when:
+  - ansible_pkg_mgr == 'yum'
+  - splunk_installed.rc|int == 1 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
+  notify: restart splunk
+  args:
+    warn: no
+
+- name: Install splunk forwarder - apt based Operating Systems
+  apt:
+    deb: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+  when:
+  - ansible_pkg_mgr == 'apt'
+  - splunk_installed.rc|int == 100 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
+  notify: restart splunk
+
+- name: Install splunk forwarder - svr4pkg based Operating Systems
+  svr4pkg:
+    name: splunkforwarder
+    src: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+    state: "{{ item }}"
+    zone: current
+  when:
+  - ansible_pkg_mgr == 'svr4pkg'
+  - splunk_installed.rc|int == 1 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
+  notify: restart splunk
+  with_items:
+  - absent
+  - present
+
+- name: Enable splunk auto-start at boot
+  shell: "/opt/splunkforwarder/bin/splunk enable boot-start -user {{ splunk_nix_user }}"
+  when:
+  - splunk_installed.rc|int != 0
+
+- name: Configure Deployment Server
+  template:
+    src: deploymentclient.conf.j2
+    dest: /opt/splunkforwarder/etc/system/local/deploymentclient.conf
+    owner: "{{ splunk_nix_user }}"
+    group: "{{ splunk_nix_group }}"
+    mode: 0600
+  notify: restart splunk
+
+- name: Cleanup
+  file:
+    path: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
+    state: absent
