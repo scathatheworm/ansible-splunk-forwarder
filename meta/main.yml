@@ -12,16 +12,22 @@ galaxy_info:
     versions:
     - all
   - name: opensuse
+    versions:
     - all
   - name: Debian
+    versions:
     - all
   - name: Ubuntu
+    versions:
     - all
   - name: Fedora
+    versions:
     - all
   - name: Mint
+    versions:
     - all
   - name: Solaris
+    versions:
     - 10
 
   galaxy_tags: [system,splunk,automation,monitoring]
