@@ -34,8 +34,9 @@ install:
   # Add roles path
   - "{ echo '[defaults]'; echo 'roles_path = ../'; } >> ansible.cfg"
 
-  # Get latest versions of openssl/wget
-  - (sudo apt-get update && sudo apt-get -y install openssl wget ) || sudo yum -y install openssl openssl-libs wget
+  # Get the splunkforwarder package
+  - wget -O splunkforwarder-6.6.1-x86_64.rpm https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-x86_64.rpm&wget=true
+  - wget -O splunkforwarder-6.6.1-x86_64.deb https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-amd64.deb&wget=true
 
 script:
   # Basic role syntax check
