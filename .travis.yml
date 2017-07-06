@@ -37,17 +37,18 @@ install:
   # Get the splunkforwarder package
   - wget -O files/splunkforwarder-6.6.1-x86_64.rpm https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-x86_64.rpm&wget=true
   - wget -O files/splunkforwarder-6.6.1-x86_64.deb https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=6.6.1&product=universalforwarder&filename=splunkforwarder-6.6.1-aeae3fe0c5af-linux-2.6-amd64.deb&wget=true
+  - ls -l files
 
 script:
   # Basic role syntax check
-  - ansible-playbook --connection=local tests/test.yml -i tests/inventory --syntax-check
+  - sudo ansible-playbook --connection=local tests/test.yml -i tests/inventory --syntax-check
 
   # Test role.
-  - ansible-playbook --connection=local -D tests/test.yml -i tests/inventory
+  - sudo ansible-playbook --connection=local -D tests/test.yml -i tests/inventory
 
   # Test role idempotence.
   - idempotence=$(mktemp)
-  - ansible-playbook --connection=local -D tests/test.yml -i tests/inventory | tee -a ${idempotence}
+  - sudo ansible-playbook --connection=local -D tests/test.yml -i tests/inventory | tee -a ${idempotence}
   - >
     tail ${idempotence}
     | grep -q 'changed=0.*failed=0'

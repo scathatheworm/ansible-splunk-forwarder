@@ -75,7 +75,7 @@
   - present
 
 - name: Enable splunk auto-start at boot
-  shell: "/opt/splunkforwarder/bin/splunk enable boot-start -user {{ splunk_nix_user }}"
+  shell: "/opt/splunkforwarder/bin/splunk enable boot-start -user {{ splunk_nix_user }} --accept-license --answer-yes"
   when:
   - splunk_installed.rc|int != 0
 
