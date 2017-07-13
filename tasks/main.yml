@@ -46,7 +46,7 @@
 - name: Install splunk forwarder - rpm based Operating Systems
   command: "rpm -Uvh /var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
   when:
-  - ansible_pkg_mgr == 'yum'
+  - ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'zypper'
   - splunk_installed.rc|int == 1 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
   notify: restart splunk
   args:
