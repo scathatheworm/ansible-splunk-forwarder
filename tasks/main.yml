@@ -33,7 +33,6 @@
     owner: "{{ splunk_nix_user }}"
     group: "{{ splunk_nix_group }}"
     state: directory
-    recurse: yes
   notify: restart splunk
 
 - name: Copy splunkforwarder package to host
@@ -41,6 +40,14 @@
     src: "splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
     dest: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
   when:
+  - splunk_installed.rc|int == 1 or splunk_installed.rc|int == 100 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
+
+- name: Create solaris response file
+  file:
+    path: /var/tmp/splunkresponsefile
+    state: touch
+  when:
+  - ansible_pkg_mgr == 'svr4pkg'
   - splunk_installed.rc|int == 1 or splunk_installed.rc|int == 100 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
 
 - name: Install splunk forwarder - rpm based Operating Systems
@@ -65,6 +72,7 @@
     name: splunkforwarder
     src: "/var/tmp/splunkforwarder-{{ splunkforwarder_version|join('.') }}-{{ ansible_architecture }}.{{ splunkforwarder_package_type }}"
     state: "{{ item }}"
+    response_file: /var/tmp/splunkresponsefile
     zone: current
   when:
   - ansible_pkg_mgr == 'svr4pkg'
@@ -87,6 +95,14 @@
     group: "{{ splunk_nix_group }}"
     mode: 0600
   notify: restart splunk
+
+- name: Cleanup response file
+  file:
+    path: /var/tmp/splunkresponsefile
+    state: absent
+  when:
+  - ansible_pkg_mgr == 'svr4pkg'
+  - splunk_installed.rc|int == 1 or splunk_installed.rc|int == 100 or ( splunk_installed.rc|int == 0 and ( splunkforwarder_version.0|int > splunk_installed.stdout_lines.0|int or splunkforwarder_version.1|int > splunk_installed.stdout_lines.1|int or splunkforwarder_version.2|int > splunk_installed.stdout_lines.2|int ) )
 
 - name: Cleanup
   file:
